@@ -1,0 +1,7 @@
+aiodns
+beautifulsoup4
+colorama
+lxml
+requests
+tldextract
+tqdm
