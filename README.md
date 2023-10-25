@@ -14,71 +14,95 @@
 </p>
 
 <h1 align="center">
-  <img src="static/demo.gif" alt="demo"</a>
+  <img src="static/demo.png" alt="demo"</a>
   <br>
 </h1>
 
 ## Key Features
-- 17 sources, currently all keyless (no subscriptions required)
-- Asyncronous brute force with lots of pep, 2,000+ requests/s (depending on nameservers)
+- 15 sources, currently all keyless (no subscriptions required)
+- Asyncronous brute force with lots of pep, 2,000+ requests/s (depending on nameservers and network performance)
 - Mutation brute forcing, i.e. permutations of discovered domains used in a brute force
-- Recursive brute forcing that obeys the laws of thermodynamics
 - Linux & Windows supported
 
 
 #### Sources
-[AlienVault](https://otx.alienvault.com/), [Anubis](https://github.com/jonluca/Anubis), [Ask](https://www.ask.com/), [Bing](https://www.bing.com/), [Certificate Search](https://crt.sh/), [DNSDumpster](https://dnsdumpster.com/), [DuckDuckGo](https://duckduckgo.com/), [Gist](https://gist.github.com/), [Google](https://www.google.com), [Hacker Target](https://hackertarget.com/), [RapidDNS](https://rapiddns.io/), [SonarSearch](https://sonar.omnisint.io/), [Threat Crowd](https://www.threatcrowd.org/), [ThreatMiner](https://www.threatminer.org/), [VirusTotal](https://www.virustotal.com/), [WayBack Machine](https://archive.org/web/), [Yahoo](https://yahoo.com/)
+[AlienVault](https://otx.alienvault.com/), [Anubis](https://github.com/jonluca/Anubis), [Ask](https://www.ask.com/), [Bing](https://www.bing.com/), [Certificate Search](https://crt.sh/), [Digitorus](https://www.digitorus.com/), [DNSDumpster](https://dnsdumpster.com/), [DuckDuckGo](https://duckduckgo.com/), [Gist](https://gist.github.com/), [Google](https://www.google.com), [Hacker Target](https://hackertarget.com/), [RapidDNS](https://rapiddns.io/), [VirusTotal](https://www.virustotal.com/), [WayBack Machine](https://archive.org/web/), [Yahoo](https://yahoo.com/)
 
 ## How To Use
 ```
-usage: snrublist3r.py [-h] -d DOMAIN [-b] [--subdomains SUBDOMAIN_FILE] [-m] [-p PERMUTATION_FILE] [-n NAMESERVER_FILE] [-t TASKS] [-o OUTPUT] [-v] [--proxy PROXY] [--autopilot] [-s SOURCES]
-                      [--disable-scraping]
+usage: snrublist3r.py [-h] [-d DOMAIN] [-df DOMAINS_FILE] [-s SOURCES]
+                      [--fast] [--proxy PROXY] [--disable-scraping] [-b]
+                      [-sf SUBDOMAINS_FILE] [-nf NAMESERVERS_FILE]
+                      [--tasks TASKS] [--timeout TIMEOUT]
+                      [--dns-retries DNS_RETRIES] [-m] [-pf PERMUTATION_FILE]
+                      [--autopilot] [--max-alts MAX_ALTS] [--loop]
+                      [-o OUTPUT_FILE] [-v] [--debug] [--silent]
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
 
-INPUT:
+TARGET(S):
   -d DOMAIN, --domain DOMAIN
-                        domain root
-  -l LIST, --list LIST  input file of line-separated domains
-  -b                    enable raw brute force
-  --subdomains SUBDOMAIN_FILE
-                        input file of line-separated subdomains used in the DNS brute force (default is bitquark-subdomains-top100000.txt)
-  -m                    enable mutation brute force
-  -p PERMUTATION_FILE, --permutations PERMUTATION_FILE
-                        input file of line-separated permutations used in the mutation DNS brute force (default is permutations.txt)
-  -n NAMESERVER_FILE, --nameservers NAMESERVER_FILE
-                        input file of line-separated nameserver IPs used in the DNS brute force
+                        root domain
+  -df DOMAINS_FILE, --domains-file DOMAINS_FILE
+                        input file of line-separated root domains
 
-SOURCE:
+SCRAPING:
   -s SOURCES, --sources SOURCES
-                        comma-separated list of sources, options are alienvault, anubis, ask, bing, certificatesearch, dnsdumpster, duckduckgo, gist, google, hackertarget, rapiddns, sonarsearch,
-                        threatcrowd, threatminer, virustotal, waybackmachine, yahoo (default is all)
-  --disable-scraping    disable scraping of any sources (use with brute force options)
+                        comma-separated list of sources, options are
+                        alienvault, anubis, ask, bing, certificatesearch,
+                        digitorus, dnsdumpster, duckduckgo, gist, google,
+                        hackertarget, rapiddns, virustotal, waybackmachine,
+                        yahoo (default is all)
+  --fast                run only fast scraping modules (excludes Gist and
+                        DuckDuckGo)
+  --proxy PROXY         proxy used for source scraper, e.g.
+                        'http://127.0.0.1:8080'
+  --disable-scraping    disable scraping of any sources (use with brute force
+                        options)
 
-RATE-LIMIT:
-  -t TASKS, --tasks TASKS
-                        number of concurrent tasks in the brute force queue (default is 512)
+BRUTE FORCE:
+  -b                    enable raw brute force
+  -sf SUBDOMAINS_FILE, --subdomains-file SUBDOMAINS_FILE
+                        input file of line-separated subdomains used in the
+                        DNS brute force (default is bitquark-subdomains-
+                        top100000.txt)
+  -nf NAMESERVERS_FILE, --nameservers-file NAMESERVERS_FILE
+                        input file of line-separated nameserver IPs used in
+                        the DNS brute force
+  --tasks TASKS         number of concurrent tasks in the brute-force queue
+                        (default is 256)
+  --timeout TIMEOUT     timeout on DNS resolution (default is 5)
+  --dns-retries DNS_RETRIES
+                        retries for DNS resolution (default is 2)
+  -m                    enable mutation brute force
+  -pf PERMUTATION_FILE, --permutation-file PERMUTATION_FILE
+                        input file of line-separated strings used in the
+                        mutation DNS brute force (default is permutation-
+                        strings.txt)
+  --autopilot           ignore input() prompts
+  --max-alts MAX_ALTS   generated mutations limit, which if exceeded the
+                        mutation brute force will not run (useful with
+                        --autopilot), default is ~500,000
+
+CONFIGURATIONS:
+  --loop                run in a continuous loop
 
 OUTPUT:
-  -o OUTPUT, --output OUTPUT
+  -o OUTPUT_FILE, --output OUTPUT_FILE
                         output file to save results
 
-CONFIGURATION:
-  --proxy PROXY         proxy used for source scraper
-  --autopilot           ignore input() prompts
-  --max-alts MAX_ALTS   generated mutations limit, which if exceeded mutation brute force will not run (useful with --autopilot), default is ~500,000
-  --recursive           enable recursive brute force
-
-DEBUG:
+VERBOSITY:
   -v                    enable vebosity
+  --debug               enable debug log level
+  --silent              disable terminal output
   ```
 
 
 #### Example Usage
 ##### Fast
 ```
-python snrublist3r.py -d example.com -v --sources alienvault,anubis,certificatesearch,dnsdumpster,hackertarget,rapiddns,sonarsearch,threatcrowd,threatminer,virustotal,waybackmachine
+python snrublist3r.py -d example.com -v --fast
 ```
 
 ##### Comprehensive
@@ -88,10 +112,13 @@ python snrublist3r.py -d example.com -v -b --subdomains ./lists/shubs-subdomains
 
 ##### Brute Force only
 ```
-python snrublist3r.py -d example.com -v -b --subdomains ./lists/shubs-subdomains.txt -m --disable-scraping
+python snrublist3r.py -d example.com -v -b -m --disable-scraping
 ```
 
 ## Installation
+
+**Python 3.9.0+** is recommended for use of removeprefix() function
+
 #### Linux
 ```
 git clone https://github.com/b3n-j4m1n/snrublist3r-private.git
@@ -114,4 +141,5 @@ pip install -r requirements.txt
  - [Async DNS Brute](https://github.com/blark/aiodnsbrute) for the reference material for a fast as f*ck asynchronous DNS brute force.
  - [AltDNS](https://awesomeopensource.com/project/elangosundar/awesome-README-templates) for the subdomain mutation module.
  - [SecLists](https://github.com/danielmiessler/SecLists) for the wordlists.
+ - [resolvers](https://github.com/trickest/resolvers) for the resolvers.
  - [Sublist3r](https://github.com/aboul3la/Sublist3r), a brilliant tool with lots of well-thought-out, practical ideas. It is ensuring the finiancial security of bug hunting for years to come.

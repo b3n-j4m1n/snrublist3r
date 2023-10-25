@@ -11,6 +11,9 @@
 19
 2
 20
+21
+22
+23
 2009
 2010
 2011
@@ -22,6 +25,10 @@
 2017
 2018
 2019
+2020
+2021
+2022
+2023
 3
 4
 5
@@ -50,6 +57,7 @@ april
 aws
 b
 backend
+backup
 beta
 billing
 boards
@@ -64,6 +72,7 @@ cdn
 cf
 chef
 ci
+citrix
 client
 cloudfront
 cms
@@ -104,6 +113,8 @@ firewall
 forms
 forum
 frontpage
+fs
+ftp
 fw
 games
 germany
@@ -141,6 +152,7 @@ march
 merch
 mirror
 na
+nas
 nautilus
 net
 netherlands
@@ -154,6 +166,8 @@ oct
 ops
 org
 origin
+outlook
+owa
 page
 pantheon
 pass
@@ -175,6 +189,7 @@ promotion
 proxy
 redirector
 region
+remote
 repo
 repository
 reset
@@ -230,13 +245,6 @@ web1
 webapp
 westeurope
 z
-2020
-2021
-2022
-2023
-21
-22
-23
 stg
 tst
 app

@@ -1,36 +1,27 @@
-from bs4 import BeautifulSoup
-from colorama import Fore, Back, Style
-import json
 import logging
+import re
 import requests
+
+from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.http_handler import HTTPHandler
+from pkg.utils.output_handler import OutputHandler
+from pkg.utils.results import Results
+
+from colorama import Fore, Back, Style
 
 
 class VirusTotal:
-    def __init__(self, domain_root, proxy):
+    def __init__(self, domain_root, proxy, output_file):
         self.domain_root = domain_root
-        self.proxy = {'http': proxy, "https": proxy}
-        self.virustotal_results = set()
+        self.output_file = output_file
+        self.proxy = proxy
+        self.source = "Virus Total"
+        self.results = Results(self.source)
 
-    def query(self, url, headers):
-        try:
-            response = requests.get(url, headers=headers, proxies=self.proxy, verify=False)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            logging.error(Fore.LIGHTRED_EX + "[-] VirusTotal Error: " + str(response.status_code) + " " + response.reason)
-            return
-        except requests.exceptions.RequestException as e:
-            logging.error(Fore.LIGHTRED_EX + "[-] VirusTotal Error: " + str(e))
-            return
-        return response
 
     def run(self):
-        logging.info("[*] starting Virus Total search...")
+        logging.info(f"[*] starting Virus Total search...")
         # credit - https://github.com/aboul3la/Sublist3r/pull/327
-        url = (
-        "https://www.virustotal.com/ui/domains/"
-        + self.domain_root
-        + "/subdomains?relationships=resolutions"
-        )
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -39,28 +30,39 @@ class VirusTotal:
             'X-Tool': 'vt-ui-main',
             'X-VT-Anti-Abuse-Header': 'purple monkey dishwasher'
         }
-        response = self.query(url, headers)
-        if response is not None:
-            try:
-                soup = BeautifulSoup(response.text, "lxml")
-                virus_total_json = json.loads(soup.text)
-                for i in virus_total_json['data']:
-                    if i['type'] == 'domain':
-                        domain = i['id']
-                        if i != self.domain_root:
-                            self.virustotal_results.add(domain)
-                for i in virus_total_json['data']:
-                    for domain in i['attributes']['last_https_certificate']['extensions']['subject_alternative_name']:
-                        domain = domain.lstrip('*.')
-                        if (
-                            domain.endswith(self.domain_root)\
-                            and domain != self.domain_root
-                        ):
-                            self.virustotal_results.add(domain.lstrip('*.'))
-                            
-            except:
-                pass
+        url = (
+        "https://www.virustotal.com/ui/domains/"
+        + self.domain_root
+        + "/subdomains?relationships=resolutions"
+        )
+        proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
+        hh = HTTPHandler(headers=headers, proxies=proxies)
+        eh = ErrorHandler()
+        
+        try:
+            response = hh.get(url)
+            domains = re.findall(r"(?:(?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?)([\w-]+(?:\.[\w-]+)+)", response.text) # removes prepended IPs, e.g. 111.232.14.16mail.example.com
+            for domain in domains:
+                if domain.startswith("*"):
+                    domain = domain[2:] # remove the "*."
+                if (
+                    domain.endswith("." + self.domain_root)
+                    and domain not in self.results.data[self.source]["subdomains"]
+                ):
+                    self.results.data[self.source]["subdomains"].add(domain)
+                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Virus Total]")                  
+        except (
+            requests.exceptions.RequestException, 
+            NameError,
+            ConnectionError,
+            TypeError,
+            AttributeError,
+            KeyboardInterrupt
+            ) as e:
+            eh.handle_error(e, self.source)
+        
+        if self.output_file:
+            oh = OutputHandler()
+            oh.handle_output(self.output_file, self.results.data)
 
-        [logging.info(Fore.LIGHTGREEN_EX + "[+] " + i) for i in self.virustotal_results]
-        logging.info("[*] " + str(len(self.virustotal_results)) + " subdomains from Virus Total search")
-        return(self.virustotal_results)
+        return self.results.data

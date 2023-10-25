@@ -9,41 +9,32 @@ from pkg.utils.results import Results
 
 from colorama import Fore, Back, Style
 
-
-class WaybackMachine:
+class Digitorus:
     def __init__(self, domain_root, proxy, output_file):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
-        self.source = "Wayback Machine"
+        self.source = "Digitorus"
         self.results = Results(self.source)
 
 
     def run(self):
-        logging.info(f"[*] starting Wayback Machine search...")
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
-        url = "http://web.archive.org/cdx/search/cdx"
-        params = {
-            "url": "*." + self.domain_root + "/*",
-            "output": "txt",
-            "fl": "original",
-            "collapse": "urlkey",
-        }
+        logging.info("[*] starting Digitorus search...")
+        url = "https://certificatedetails.com/" + f"{self.domain_root}"
         proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
-        hh = HTTPHandler(headers=headers, proxies=proxies, params=params)
+        hh = HTTPHandler(proxies=proxies, timeout=120)
         eh = ErrorHandler()
 
         try:
             response = hh.get(url)
-            domains = re.findall(r'(?:%252F|//|@)((?:[\w-]+[.])+[\w-]+)', response.text)
+            pattern = re.compile(fr'\b[\w.-]+{re.escape(self.domain_root)}\b')
+            domains = re.findall(pattern, response.text)
             for domain in domains:
-                domain = domain.lower() # preventing different case duplicates
                 if (
-                    domain.endswith("." + self.domain_root)
-                    and domain not in self.results.data[self.source]["subdomains"]
+                    domain not in self.results.data[self.source]["subdomains"]
                 ):
                     self.results.data[self.source]["subdomains"].add(domain)
-                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Wayback Machine]") 
+                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Digitorus]") 
         except (
             requests.exceptions.RequestException, 
             NameError,
@@ -53,7 +44,7 @@ class WaybackMachine:
             KeyboardInterrupt
             ) as e:
             eh.handle_error(e, self.source)
-
+        
         if self.output_file:
             oh = OutputHandler()
             oh.handle_output(self.output_file, self.results.data)

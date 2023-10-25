@@ -1,51 +1,56 @@
-from bs4 import BeautifulSoup
-from colorama import Fore, Back, Style
-import json
 import logging
+import json
 import requests
+
+from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.http_handler import HTTPHandler
+from pkg.utils.output_handler import OutputHandler
+from pkg.utils.results import Results
+
+from colorama import Fore, Style
 
 
 class AlienVault:
-    def __init__(self, domain_root, proxy):
+    def __init__(self, domain_root, proxy, output_file):
         self.domain_root = domain_root
-        self.proxy = {'http': proxy, "https": proxy}
-        self.alienvault_results = set()
-
-    def query(self, url, headers):
-        try:
-            response = requests.get(url, headers=headers, proxies=self.proxy, verify=False)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            logging.error(Fore.LIGHTRED_EX + "[-] AlientVault Error: " + str(response.status_code) + " " + response.reason)
-            return
-        except requests.exceptions.RequestException as e:
-            logging.error(Fore.LIGHTRED_EX + "[-] AlientVault Error: " + str(e))
-            return
-        return response
+        self.output_file = output_file
+        self.proxy = proxy
+        self.source = "AlienVault"
+        self.results = Results(self.source)
 
     def run(self):
-        logging.info("[*] starting AlienVault query...")
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
-        url = (
-            "https://otx.alienvault.com/api/v1/indicators/domain/"
-            + self.domain_root
-            + "/passive_dns"
-        )
-        response = self.query(url, headers)
-        if response is not None:
-            try:
-                soup = BeautifulSoup(response.text, "lxml")
-                alienvault_json = json.loads(soup.text)
-                for domain in alienvault_json["passive_dns"]:
-                    if (
-                        domain["hostname"].endswith("." + self.domain_root)
-                        and domain["hostname"] not in self.alienvault_results
-                        and domain["hostname"] != self.domain_root
-                    ):
-                        logging.info(Fore.LIGHTGREEN_EX + "[+] " + domain["hostname"])
-                        self.alienvault_results.add(domain["hostname"])
-            except:
-                pass
+        logging.warning(f"[*] starting AlienVault query...")
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
+        }
+        url = f"https://otx.alienvault.com/api/v1/indicators/domain/{self.domain_root}/passive_dns"
+        proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
+        hh = HTTPHandler(headers=headers, proxies=proxies)
+        eh = ErrorHandler()
+
+        try:
+            response = hh.get(url)
+            response.raise_for_status()
+            data = response.json()
+            for item in data["passive_dns"]:
+                if item["hostname"].endswith("." + self.domain_root):
+                    self.results.data[self.source]["subdomains"].add(item["hostname"])
+            for subdomain in self.results.data[self.source]["subdomains"]:
+                logging.info(f"{Fore.LIGHTGREEN_EX}[+] {subdomain}{Style.RESET_ALL}{Fore.WHITE} [AlienVault]")
+                    
+        except (
+            requests.exceptions.RequestException, 
+            NameError, 
+            json.decoder.JSONDecodeError, 
+            ConnectionError, 
+            TypeError, 
+            AttributeError, 
+            KeyboardInterrupt
+            ) as e:
+            eh.handle_error(e, self.source)
         
-        logging.info("[*] " + str(len(self.alienvault_results)) + " subdomains from AlienVault")
-        return self.alienvault_results
+        if self.output_file:
+            oh = OutputHandler()
+            oh.handle_output(self.output_file, self.results.data)
+
+        return self.results.data

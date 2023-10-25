@@ -1,48 +1,54 @@
-from colorama import Fore, Back, Style
 import logging
 import re
 import requests
 
+from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.http_handler import HTTPHandler
+from pkg.utils.output_handler import OutputHandler
+from pkg.utils.results import Results
+
+from colorama import Fore, Back, Style
+
 
 class RapidDNS:
-    def __init__(self, domain_root, proxy):
+    def __init__(self, domain_root, proxy, output_file):
         self.domain_root = domain_root
-        self.proxy = {'http': proxy, "https": proxy}
-        self.rapiddns_results = set()
-
-    def query(self, url, headers):
-        try:
-            response = requests.get(url, headers=headers, proxies=self.proxy, verify=False)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            logging.error(Fore.LIGHTRED_EX + "[-] RapidDNS Error: " + str(response.status_code) + " " + response.reason)
-            return
-        except requests.exceptions.RequestException as e:
-            logging.error(Fore.LIGHTRED_EX + "[-] RapidDNS Error: " + str(e))
-            return
-        return response
+        self.output_file = output_file
+        self.proxy = proxy
+        self.source = "RapidDNS"
+        self.results = Results(self.source)
 
     def run(self):
-        logging.info("[*] starting RapidDNS query...")
-        url = (
-            "https://rapiddns.io/subdomain/"
-            + self.domain_root
-            + "?full=1"
-        )
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
-        response = self.query(url, headers)
-        if response is not None:
-            try:
-                domains = re.findall(r"(?:[\w-]+[.])+[\w-]+", response.text)
-                for domain in domains:
-                    if (
-                        domain.endswith("." + self.domain_root)
-                        and domain != self.domain_root
-                        and domain not in self.rapiddns_results
-                    ):
-                        logging.info(Fore.LIGHTGREEN_EX + "[+] " + domain)
-                        self.rapiddns_results.add(domain)
-            except:
-                pass
-        logging.info("[*] " + str(len(self.rapiddns_results)) + " subdomains from RapidDNS")
-        return self.rapiddns_results
+        logging.warning(f"[*] starting RapidDNS search...")
+        url = f"https://rapiddns.io/subdomain/{self.domain_root}?full=1"
+        proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
+        hh = HTTPHandler(proxies=proxies)
+        eh = ErrorHandler()
+        
+        try:
+            response = hh.get(url)
+            response.raise_for_status()
+            domains = re.findall(r"(?:[\w-]+[.])+[\w-]+", response.text)
+            for domain in domains:
+                domain = domain.lower() # preventing different case duplicates
+                if (
+                    domain.endswith("." + self.domain_root)
+                    and domain not in self.results.data[self.source]["subdomains"]
+                ):
+                    self.results.data[self.source]["subdomains"].add(domain)
+                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [RapidDNS]")
+        except (
+            requests.exceptions.RequestException, 
+            NameError,
+            ConnectionError,
+            TypeError,
+            AttributeError,
+            KeyboardInterrupt
+            ) as e:
+            eh.handle_error(e, self.source)
+        
+        if self.output_file:
+            oh = OutputHandler()
+            oh.handle_output(self.output_file, self.results.data)
+
+        return self.results.data

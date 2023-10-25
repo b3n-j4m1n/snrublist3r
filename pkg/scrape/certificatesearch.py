@@ -1,53 +1,60 @@
-from bs4 import BeautifulSoup
-from colorama import Fore, Back, Style
 import logging
 import requests
+import json
+
+from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.http_handler import HTTPHandler
+from pkg.utils.output_handler import OutputHandler
+from pkg.utils.results import Results
+
+from colorama import Fore, Back, Style
 
 class CertificateSearch:
-    def __init__(self, domain_root, proxy):
+    def __init__(self, domain_root, proxy, output_file):
         self.domain_root = domain_root
-        self.proxy = {'http': proxy, "https": proxy}
-        self.certificate_search_results = set()
+        self.output_file = output_file
+        self.proxy = proxy
+        self.source = "Certificate Search"
+        self.results = Results(self.source)
 
-    def query(self, url, params):
-        try:
-            response = requests.get(url, params=params, proxies=self.proxy, verify=False)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            logging.error(Fore.LIGHTRED_EX + "[-] Certificate Search Error: " + str(response.status_code) + " " + response.reason)
-            return
-        except requests.exceptions.RequestException as e:
-            logging.error(Fore.LIGHTRED_EX + "[-] Certificate Search Error: " + str(e))
-            return
-        return response 
 
     def run(self):
         logging.info("[*] starting certificate transparency search...")
         url = "https://crt.sh"
-        params = {"q": self.domain_root}
-        response = self.query(url, params)
-        if response is not None:
-            try:
-                soup = BeautifulSoup(response.text, "lxml")
-                data = soup.findAll("td")
-                if (
-                    "Sorry, something went wrong..." in soup.text
-                    or "a padding to disable MSIE and Chrome friendly error page" in soup.text
-                ):
-                    logging.error(Fore.LIGHTRED_EX + "[-] something went wrong in certificate transparency search, please try again later")
-                else:
-                    for value in data:
-                        value_list = value.get_text(strip=True, separator="\n").splitlines() # handling data such as <td>example.com<br>uat.example.com</tr>
-                        for i in value_list:
-                            if (
-                                i.endswith("." + self.domain_root)
-                                and not i.startswith("*")
-                                and i != self.domain_root
-                            ):
-                                self.certificate_search_results.add(i)
-                [logging.info(Fore.LIGHTGREEN_EX + "[+] " + i) for i in self.certificate_search_results]
-            except:
-                pass
-            
-        logging.info("[*] " + str(len(self.certificate_search_results)) + " subdomains from certificate transparency search")
-        return(self.certificate_search_results)
+        params = {
+            "q": f"{self.domain_root}",
+            "output": "json"
+        }
+        proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
+        hh = HTTPHandler(proxies=proxies, params=params, timeout=120)
+        eh = ErrorHandler()
+
+        try:
+            response = hh.get(url)
+            response.raise_for_status()
+            data = response.json()
+            for item in data:
+                domains = item['name_value'].split('\n')
+                for domain in domains:
+                    if domain.startswith("*"):
+                        domain = domain[2:] # remove the "*."
+                    if domain.endswith("." + self.domain_root) and "@" not in domain: # filtering out email addresses
+                        self.results.data[self.source]["subdomains"].add(domain)
+            for subdomain in self.results.data[self.source]["subdomains"]:
+                logging.info(f"{Fore.LIGHTGREEN_EX}[+] {subdomain}{Style.RESET_ALL}{Fore.WHITE} [Certifcate Search]")
+        except (
+            requests.exceptions.RequestException, 
+            NameError, 
+            json.decoder.JSONDecodeError,
+            ConnectionError,
+            TypeError, 
+            AttributeError, 
+            KeyboardInterrupt
+            ) as e:
+            eh.handle_error(e, self.source)
+        
+        if self.output_file:
+            oh = OutputHandler()
+            oh.handle_output(self.output_file, self.results.data)
+
+        return self.results.data
