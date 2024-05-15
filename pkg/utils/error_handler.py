@@ -1,7 +1,9 @@
 import logging
 import requests.exceptions
 import json.decoder
+import socket
 import sys
+import ssl
 import traceback
 
 from colorama import Fore, Back, Style
@@ -10,6 +12,11 @@ class ErrorHandler:
     ERROR_MESSAGES = {
         requests.exceptions.Timeout: "Timeout",
         requests.exceptions.RequestException: "Request Exception",
+        socket.timeout: "Socket Timeout",
+        socket.error: "Socket Error",
+        socket.gaierror: "DNS Lookup Failed",
+        ssl.SSLError: "SSL Connection Error",
+        ssl.CertificateError: "SSL Certificate Error",
         TypeError: "Type Error",
         AttributeError: "Attribute Error",
         json.decoder.JSONDecodeError: "JSON Decode Error",

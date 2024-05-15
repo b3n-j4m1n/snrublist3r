@@ -5,6 +5,7 @@ from pkg.scrape import (
     ask,
     bing,
     certificatesearch,
+    commoncrawl,
     digitorus,
     dnsdumpster,
     duckduckgo,
@@ -18,6 +19,7 @@ from pkg.scrape import (
 )
 
 from pkg.bruteforce.dnsbruteforce import DNSBruteForce
+from pkg.subjectaltnames.san_search import SANSearch
 from pkg.bruteforce.altdns import AltDNS
 
 import colorama
@@ -38,6 +40,7 @@ class ModuleRunner:
             "ask",
             "bing",
             "certificatesearch",
+            "commoncrawl",
             "digitorus",
             "dnsdumpster",
             "duckduckgo",
@@ -73,6 +76,7 @@ class ModuleRunner:
             'ask': ask.Ask(domain, proxy, output_file),
             'bing': bing.Bing(domain, proxy, output_file),
             'certificatesearch': certificatesearch.CertificateSearch(domain, proxy, output_file),
+            'commoncrawl': commoncrawl.CommonCrawl(domain, proxy, output_file),
             'digitorus': digitorus.Digitorus(domain, proxy, output_file),
             'dnsdumpster': dnsdumpster.DNSDumpster(domain, proxy, output_file),
             'duckduckgo': duckduckgo.DuckDuckGo(domain, proxy, output_file),
@@ -90,6 +94,7 @@ class ModuleRunner:
             'ask': "Ask",
             'bing': "Bing",
             'certificatesearch': "Certificate Search",
+            'commoncrawl': "Common Crawl",
             'digitorus': "Digitorus",
             'duckduckgo': "DuckDuckGo",
             'dnsdumpster': "DNSDumpster",
@@ -114,12 +119,18 @@ class ModuleRunner:
             results.update(sources_modules[source].run())
         return results
         
-    
     def run_brute_force(self, domain, tasks, subdomains, nameservers, operating_system, timeout, dns_retries, verbosity_level, output_file=None):
         logging.warning(f"[*] starting raw brute force...")
         sources_name = "DNS Brute Force"
         dnsbf = DNSBruteForce(tasks, nameservers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file)
         results = dnsbf.run(domain, subdomains)   
+        return results
+    
+    def run_san_search(self, domain, found_subdomains, timeout, verbosity_level, output_file=None):
+        logging.warning(f"[*] starting SAN search...")
+        sources_name = "SAN Search"
+        ssearch = SANSearch(domain, sources_name, found_subdomains, timeout, verbosity_level, output_file)
+        results = ssearch.run()
         return results
     
     def run_altdns(self, domain, found_subdomains, tasks, nameservers, permutations, operating_system, max_alts, autopilot, timeout, dns_retries, verbosity_level, output_file=None):

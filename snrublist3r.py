@@ -5,7 +5,6 @@ import sys
 import time
 
 from pkg.utils.file_handler import FileHandler
-from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results_printer import ResultsPrinter
 from pkg.utils.module_runner import ModuleRunner
 from pkg.utils.verbosity import Verbosity
@@ -39,6 +38,7 @@ def parse_args():
     target = parser.add_argument_group('TARGET(S)')
     scraping = parser.add_argument_group('SCRAPING')
     brute_force = parser.add_argument_group('BRUTE FORCE')
+    san_search = parser.add_argument_group('SAN SEARCH')
     configurations = parser.add_argument_group('CONFIGURATIONS')
     output = parser.add_argument_group('OUTPUT')
     verbosity = parser.add_argument_group('VERBOSITY')
@@ -46,8 +46,8 @@ def parse_args():
     target.add_argument("-d", "--domain", dest="domain", help="root domain", default=None)
     target.add_argument("-df", "--domains-file", dest="domains_file", help="input file of line-separated root domains", default=None)
 	
-    scraping.add_argument("-s", "--sources", dest="sources", type=str, help="comma-separated list of sources, options are alienvault, anubis, ask, bing, certificatesearch, digitorus, dnsdumpster, duckduckgo, gist, google, hackertarget, rapiddns, virustotal, waybackmachine, yahoo (default is all)")
-    scraping.add_argument("--fast", dest="fast", help="run only fast scraping modules (excludes Gist and DuckDuckGo)", action="store_true")
+    scraping.add_argument("-s", "--sources", dest="sources", type=str, help="comma-separated list of sources, options are alienvault, anubis, ask, bing, certificatesearch, commoncrawl, digitorus, dnsdumpster, duckduckgo, gist, google, hackertarget, rapiddns, virustotal, waybackmachine, yahoo (default is all)")
+    scraping.add_argument("--fast", dest="fast", help="run only fast scraping modules (excludes Common Crawl, DuckDuckGo, Gist)", action="store_true")
     scraping.add_argument("--proxy", dest="proxy", help="proxy used for source scraper, e.g. 'http://127.0.0.1:8080'", default=None)
     scraping.add_argument("--disable-scraping", dest="disable_scraping", help="disable scraping of any sources (use with brute force options)", action="store_true")
 	
@@ -61,6 +61,8 @@ def parse_args():
     brute_force.add_argument("-pf", "--permutation-file", dest="permutation_file", help="input file of line-separated strings used in the mutation DNS brute force (default is permutation-strings.txt)", default="./lists/permutation-strings.txt")
     brute_force.add_argument("--autopilot", dest="autopilot", help="ignore input() prompts", action="store_true")
     brute_force.add_argument("--max-alts", dest="max_alts", help="generated mutations limit, which if exceeded the mutation brute force will not run (useful with --autopilot), default is ~500,000", default=500000)
+
+    san_search.add_argument("--san", dest="san", help="enable Subject Alt Names search", action="store_true")
     
     configurations.add_argument("--loop", dest="loop", help="run in a continuous loop", action="store_true")
 
@@ -118,6 +120,18 @@ def main(args):
                     operating_system=os.name,
                     timeout=args.timeout,
                     dns_retries=args.dns_retries,
+                    verbosity_level=verbosity_level,
+                    output_file=args.output_file
+                )
+            )
+
+            if args.san:
+                found_subdomains = {subdomain for enum_data in results.values() for subdomain in enum_data['subdomains']}
+                results.update(
+                mr.run_san_search(
+                    domain=domain,
+                    found_subdomains=found_subdomains,
+                    timeout=args.timeout,
                     verbosity_level=verbosity_level,
                     output_file=args.output_file
                 )

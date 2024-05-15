@@ -14,13 +14,13 @@ from tqdm import tqdm
 
 
 class DNSBruteForce:
-    def __init__(self, tasks, nameservers, operating_system, source_name, timeout, dns_retries, verbosity, output_file):
+    def __init__(self, tasks, nameservers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file):
         self.operating_system = operating_system
         if operating_system == 'nt':
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         self.domains = []
-        self.source_name = source_name
-        self.results = Results(self.source_name)
+        self.sources_name = sources_name
+        self.results = Results(self.sources_name)
         self.nameservers = nameservers
         self.tasks = tasks
         self.timeout = timeout
@@ -28,7 +28,7 @@ class DNSBruteForce:
         self.resolver = aiodns.DNSResolver(nameservers=self.nameservers , timeout=self.timeout, tries=self.dns_retries, rotate=True)
         self.task_list = []
         self.queue = asyncio.Queue()
-        self.verbosity = verbosity
+        self.verbosity_level = verbosity_level
         self.output_file = output_file
         self.eh = ErrorHandler()
 
@@ -50,14 +50,14 @@ class DNSBruteForce:
                 domain = await queue.get()
                 try:
                     await self.resolver.query(domain, "A")
-                    if self.verbosity > 0:
+                    if self.verbosity_level > 0:
                         tqdm.write('\033[92m' + "[+] " + domain + '\033[1m')
-                    self.results.data[self.source_name]["subdomains"].add(domain)
+                    self.results.data[self.sources_name]["subdomains"].add(domain)
                 except aiodns.error.DNSError as error:
                     if error.args[0] != 1 and error.args[0] != 4:
                         self.timeout_bar.update()
                 finally:
-                    if self.verbosity > 0:
+                    if self.verbosity_level > 0:
                         self.progress_bar.update()
                     queue.task_done()
         except KeyboardInterrupt as error:
@@ -73,7 +73,7 @@ class DNSBruteForce:
         except:
             pass
 
-        if self.verbosity > 0:
+        if self.verbosity_level > 0:
             self.progress_bar = tqdm(desc="progress", total=len(subdomains), unit=" requests", maxinterval=0.1, mininterval=0, miniters=1, smoothing=0, colour='WHITE')
             self.timeout_bar = tqdm(desc="error", total=len(subdomains), unit=" errors", maxinterval=1, mininterval=1, colour='RED')
         else:
