@@ -147,4 +147,4 @@ pip install -r requirements.txt
  - [AltDNS](https://awesomeopensource.com/project/elangosundar/awesome-README-templates) for the subdomain mutation module.
  - [SecLists](https://github.com/danielmiessler/SecLists) for the wordlists.
  - [resolvers](https://github.com/trickest/resolvers) for the resolvers.
- - [Sublist3r](https://github.com/aboul3la/Sublist3r), a brilliant tool with lots of well-thought-out, practical ideas. It is ensuring the finiancial security of bug hunting for years to come.
+ - [Sublist3r](https://github.com/aboul3la/Sublist3r), a brilliant tool with lots of well-thought-out, practical ideas. It is ensuring the financial security of bug hunting for years to come.
