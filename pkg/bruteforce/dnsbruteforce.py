@@ -14,18 +14,18 @@ from tqdm import tqdm
 
 
 class DNSBruteForce:
-    def __init__(self, tasks, nameservers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file):
+    def __init__(self, tasks, resolvers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file):
         self.operating_system = operating_system
         if operating_system == 'nt':
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         self.domains = []
         self.sources_name = sources_name
         self.results = Results(self.sources_name)
-        self.nameservers = nameservers
+        self.resolvers = resolvers
         self.tasks = tasks
         self.timeout = timeout
         self.dns_retries = dns_retries
-        self.resolver = aiodns.DNSResolver(nameservers=self.nameservers , timeout=self.timeout, tries=self.dns_retries, rotate=True)
+        self.resolver = aiodns.DNSResolver(nameservers=self.resolvers , timeout=self.timeout, tries=self.dns_retries, rotate=True)
         self.task_list = []
         self.queue = asyncio.Queue()
         self.verbosity_level = verbosity_level

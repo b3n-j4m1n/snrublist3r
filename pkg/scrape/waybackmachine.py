@@ -16,6 +16,7 @@ class WaybackMachine:
         self.output_file = output_file
         self.proxy = proxy
         self.source = "Wayback Machine"
+        self.timeout = 180
         self.results = Results(self.source)
 
 
@@ -30,20 +31,28 @@ class WaybackMachine:
             "collapse": "urlkey",
         }
         proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
-        hh = HTTPHandler(headers=headers, proxies=proxies, params=params)
+        hh = HTTPHandler(headers=headers, proxies=proxies, params=params, timeout=self.timeout)
         eh = ErrorHandler()
 
         try:
             response = hh.get(url)
-            domains = re.findall(r'(?:%252F|//|@)((?:[\w-]+[.])+[\w-]+)', response.text)
+            domains = re.findall(r'(?:%252F|//|@)((?:[\w-]+[.])+[\w-]+)', response.text, flags=re.IGNORECASE)
             for domain in domains:
+                if domain.startswith("2f"):
+                    domain = domain[2:]
                 domain = domain.lower() # preventing different case duplicates
                 if (
                     domain.endswith("." + self.domain_root)
                     and domain not in self.results.data[self.source]["subdomains"]
                 ):
                     self.results.data[self.source]["subdomains"].add(domain)
-                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Wayback Machine]") 
+                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Wayback Machine]")
+        except requests.exceptions.Timeout as e:
+            logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Wayback Machine] timed out - service may be slow or unavailable{Style.RESET_ALL}")
+            eh.handle_error(e, self.source)
+        except requests.exceptions.ConnectionError as e:
+            logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Wayback Machine] connection failed - service may be unavailable{Style.RESET_ALL}")
+            eh.handle_error(e, self.source)
         except (
             requests.exceptions.RequestException, 
             NameError,

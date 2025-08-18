@@ -44,7 +44,7 @@ class Bing:
                 if "There are no results for " in response.text:
                     break
                 else:
-                    domains = re.findall(r"(?<!2f)(?:[\w-]+[.])+[\w-]+", response.text)
+                    domains = re.findall(r"(?<!2f)(?:[\w-]+[.])+[\w-]+", response.text, flags=re.IGNORECASE)
                     for domain in domains:
                         if sys.version_info >= (3, 9):
                             domain = domain.lower().removeprefix("x22").removeprefix("2f") # removing leading junk from some results

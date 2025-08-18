@@ -5,6 +5,7 @@ from pkg.scrape import (
     ask,
     bing,
     certificatesearch,
+    chaos,
     commoncrawl,
     digitorus,
     dnsdumpster,
@@ -13,6 +14,8 @@ from pkg.scrape import (
     google,
     hackertarget,
     rapiddns,
+    subdomaincenter,
+    threatcrowd,
     virustotal,
     waybackmachine,
     yahoo,
@@ -40,6 +43,7 @@ class ModuleRunner:
             "ask",
             "bing",
             "certificatesearch",
+            "chaos",
             "commoncrawl",
             "digitorus",
             "dnsdumpster",
@@ -48,6 +52,8 @@ class ModuleRunner:
             "google",
             "hackertarget",
             "rapiddns",
+            "subdomaincenter",
+            "threatcrowd",
             "virustotal",
             "waybackmachine",
             "yahoo"
@@ -61,12 +67,14 @@ class ModuleRunner:
             "ask",
             "bing",
             "certificatesearch",
+            "chaos",
             "digitorus",
             "dnsdumpster",
             "hackertarget",
             "rapiddns",
+            "subdomaincenter",
+            "threatcrowd",
             "virustotal",
-            "waybackmachine",
             "yahoo"
         ]
         sources_selected = []
@@ -76,6 +84,7 @@ class ModuleRunner:
             'ask': ask.Ask(domain, proxy, output_file),
             'bing': bing.Bing(domain, proxy, output_file),
             'certificatesearch': certificatesearch.CertificateSearch(domain, proxy, output_file),
+            'chaos': chaos.Chaos(domain, proxy, output_file),
             'commoncrawl': commoncrawl.CommonCrawl(domain, proxy, output_file),
             'digitorus': digitorus.Digitorus(domain, proxy, output_file),
             'dnsdumpster': dnsdumpster.DNSDumpster(domain, proxy, output_file),
@@ -84,6 +93,8 @@ class ModuleRunner:
             'google': google.Google(domain, proxy, output_file),
             'hackertarget': hackertarget.HackerTarget(domain, proxy, output_file),
             'rapiddns': rapiddns.RapidDNS(domain, proxy, output_file),
+            'subdomaincenter': subdomaincenter.SubdomainCenter(domain, proxy, output_file),
+            'threatcrowd': threatcrowd.ThreatCrowd(domain, proxy, output_file),
             'virustotal': virustotal.VirusTotal(domain, proxy, output_file),
             'waybackmachine': waybackmachine.WaybackMachine(domain, proxy, output_file),
             'yahoo': yahoo.Yahoo(domain, proxy, output_file),
@@ -94,6 +105,7 @@ class ModuleRunner:
             'ask': "Ask",
             'bing': "Bing",
             'certificatesearch': "Certificate Search",
+            'chaos': "Chaos",
             'commoncrawl': "Common Crawl",
             'digitorus': "Digitorus",
             'duckduckgo': "DuckDuckGo",
@@ -102,6 +114,8 @@ class ModuleRunner:
             'google': "Google",
             'hackertarget': "Hacker Target",
             'rapiddns': "RapidDNS",
+            'subdomaincenter': "Subdomain Center",
+            'threatcrowd': "ThreatCrowd",
             'virustotal': "VirusTotal",
             'waybackmachine': "Wayback Machine",
             'yahoo': "Yahoo"
@@ -119,10 +133,10 @@ class ModuleRunner:
             results.update(sources_modules[source].run())
         return results
         
-    def run_brute_force(self, domain, tasks, subdomains, nameservers, operating_system, timeout, dns_retries, verbosity_level, output_file=None):
+    def run_brute_force(self, domain, tasks, subdomains, resolvers, operating_system, timeout, dns_retries, verbosity_level, output_file=None):
         logging.warning(f"[*] starting raw brute force...")
         sources_name = "DNS Brute Force"
-        dnsbf = DNSBruteForce(tasks, nameservers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file)
+        dnsbf = DNSBruteForce(tasks, resolvers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file)
         results = dnsbf.run(domain, subdomains)   
         return results
     
@@ -133,8 +147,8 @@ class ModuleRunner:
         results = ssearch.run()
         return results
     
-    def run_altdns(self, domain, found_subdomains, tasks, nameservers, permutations, operating_system, max_alts, autopilot, timeout, dns_retries, verbosity_level, output_file=None):
-        max_alts = int(max_alts) // 1425
+    def run_altdns(self, domain, found_subdomains, tasks, resolvers, permutations, operating_system, max_alts, autopilot, timeout, dns_retries, verbosity_level, output_file=None):
+        max_alts = int(max_alts) // 1425 # permutations is roughly 1,145 x found subdomains
         if len(found_subdomains) > max_alts:
             logging.error(f"{Fore.LIGHTRED_EX}[-] mutation brute force cancelled, excessive permutations, use --max-alts to override")
             return set()
@@ -163,6 +177,6 @@ class ModuleRunner:
             else:
                 logging.warn(f"[*] starting mutation brute force...")
                 pass
-        dnsbf = DNSBruteForce(tasks, nameservers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file)
+        dnsbf = DNSBruteForce(tasks, resolvers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file)
         results = dnsbf.run(domain, permutations)
         return results

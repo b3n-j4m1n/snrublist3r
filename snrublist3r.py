@@ -46,17 +46,17 @@ def parse_args():
     target.add_argument("-d", "--domain", dest="domain", help="root domain", default=None)
     target.add_argument("-df", "--domains-file", dest="domains_file", help="input file of line-separated root domains", default=None)
 	
-    scraping.add_argument("-s", "--sources", dest="sources", type=str, help="comma-separated list of sources, options are alienvault, anubis, ask, bing, certificatesearch, commoncrawl, digitorus, dnsdumpster, duckduckgo, gist, google, hackertarget, rapiddns, virustotal, waybackmachine, yahoo (default is all)")
-    scraping.add_argument("--fast", dest="fast", help="run only fast scraping modules (excludes Common Crawl, DuckDuckGo, Gist)", action="store_true")
+    scraping.add_argument("-s", "--sources", dest="sources", type=str, help="comma-separated list of sources, options are alienvault, anubis, ask, bing, certificatesearch, chaos, commoncrawl, digitorus, dnsdumpster, duckduckgo, gist, google, hackertarget, rapiddns, subdomaincenter, threatcrowd, virustotal, waybackmachine, yahoo (default is all)")
+    scraping.add_argument("--fast", dest="fast", help="run only fast scraping modules (excludes Common Crawl, DuckDuckGo, Gist, Wayback Machine)", action="store_true")
     scraping.add_argument("--proxy", dest="proxy", help="proxy used for source scraper, e.g. 'http://127.0.0.1:8080'", default=None)
     scraping.add_argument("--disable-scraping", dest="disable_scraping", help="disable scraping of any sources (use with brute force options)", action="store_true")
 	
     brute_force.add_argument("-b", dest="brute_force", help="enable raw brute force", action="store_true")
     brute_force.add_argument("-sf", "--subdomains-file", dest="subdomains_file", help="input file of line-separated subdomains used in the DNS brute force (default is bitquark-subdomains-top100000.txt)", default="./lists/bitquark-subdomains-top100000.txt")
-    brute_force.add_argument("-nf", "--nameservers-file", dest="nameservers_file", help="input file of line-separated nameserver IPs used in the DNS brute force")
+    brute_force.add_argument("-rf", "--resolvers-file", dest="resolvers_file", help="input file of line-separated resolver IPs used in the DNS brute force")
     brute_force.add_argument("--tasks", dest="tasks", help="number of concurrent tasks in the brute-force queue (default is 256)", type=int, default=256)
-    brute_force.add_argument("--timeout", dest="timeout", help="timeout on DNS resolution (default is 5)", type=float, default=5)
-    brute_force.add_argument("--dns-retries", dest="dns_retries", help="retries for DNS resolution (default is 2)", type=int, default=2)
+    brute_force.add_argument("--timeout", dest="timeout", help="timeout on DNS resolution (default is 1)", type=float, default=1)
+    brute_force.add_argument("--dns-retries", dest="dns_retries", help="retries for DNS resolution (default is 3)", type=int, default=3)
     brute_force.add_argument("-m", dest="mutation", help="enable mutation brute force", action="store_true")
     brute_force.add_argument("-pf", "--permutation-file", dest="permutation_file", help="input file of line-separated strings used in the mutation DNS brute force (default is permutation-strings.txt)", default="./lists/permutation-strings.txt")
     brute_force.add_argument("--autopilot", dest="autopilot", help="ignore input() prompts", action="store_true")
@@ -85,7 +85,7 @@ def main(args):
 
     fh = FileHandler()
     root_domains = fh.list_root_domains(domain=args.domain, domains_file=args.domains_file)
-    nameservers = fh.set_nameservers(nameserver_file=args.nameservers_file, brute_force=args.brute_force, mutation=args.mutation)
+    resolvers = fh.set_resolvers(resolvers_file=args.resolvers_file, brute_force=args.brute_force, mutation=args.mutation)
     permutation_strings = fh.set_permutation_strings(permutation_file=args.permutation_file)
 
     mr = ModuleRunner()
@@ -116,7 +116,7 @@ def main(args):
                     domain=domain,
                     tasks=args.tasks,
                     subdomains=subdomains,
-                    nameservers=nameservers,
+                    resolvers=resolvers,
                     operating_system=os.name,
                     timeout=args.timeout,
                     dns_retries=args.dns_retries,
@@ -144,7 +144,7 @@ def main(args):
                     domain=domain,
                     found_subdomains=found_subdomains,
                     tasks=args.tasks,
-                    nameservers=nameservers,
+                    resolvers=resolvers,
                     permutations=permutation_strings,
                     operating_system=os.name,
                     max_alts=args.max_alts,

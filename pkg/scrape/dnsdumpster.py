@@ -1,5 +1,7 @@
 import logging
+import re
 import requests
+import sys
 
 from pkg.utils.error_handler import ErrorHandler
 from pkg.utils.http_handler import HTTPHandler
@@ -19,58 +21,46 @@ class DNSDumpster:
         self.results = Results(self.source)
 
 
-    def get_csrf_data(self, response):
-        data = {}
-        soup = BeautifulSoup(response.text, "lxml")
-        csrfmiddlewaretoken = soup.find("input", {"name":"csrfmiddlewaretoken"})
-        data.update(
-            {
-                "csrftoken": response.cookies["csrftoken"],
-                "csrfmiddlewaretoken_value": csrfmiddlewaretoken["value"],
-            }
-        )
-        return data
+    def get_authorization_token(self, response):
+        authorization_key_pair = re.search(r'"Authorization":\s*"([^"]*)"', response.text)
+        authorization_token = authorization_key_pair.group(1)
+        return authorization_token
     
     def run(self):
         logging.info("[*] starting DNSDumpster query...")
-        url = f"https://dnsdumpster.com/"
+        authorization_url = f"https://dnsdumpster.com/"
+        url = f"https://api.dnsdumpster.com/htmld/"
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
         proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
         hh = HTTPHandler(headers=headers, proxies=proxies)
         eh = ErrorHandler()
         try:
-            csrf_response = hh.get(url)
-            csrf_data = self.get_csrf_data(csrf_response)
-            csrftoken = csrf_data["csrftoken"]
+            authorization_response = hh.get(authorization_url)
+            authorization_token = self.get_authorization_token(authorization_response)
             headers.update(
-                {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Referer": "https://dnsdumpster.com/",
-                    "Cookie": "csrftoken=" + csrftoken,
-                }
+                {"Authorization": authorization_token}
             )
-            csrfmiddlewaretoken_value = csrf_data["csrfmiddlewaretoken_value"]
-            data = {
-                "csrfmiddlewaretoken": csrfmiddlewaretoken_value,
-                "targetip": self.domain_root,
-                "user": "free",
-            }
         except:
-            logging.error(Fore.LIGHTRED_EX + "[-] [DNSDumpster] error handling CSRF data")
+            logging.error(Fore.LIGHTRED_EX + "[-] [DNSDumpster] error getting Authorization token")
             return self.results.data
         
+        data = {"target": self.domain_root}
         hh = HTTPHandler(headers=headers, proxies=proxies, data=data)
         try:
             response = hh.post(url)
+            response.raise_for_status()
+            domains = re.findall(r"\b[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b", response.text)
             soup = BeautifulSoup(response.text, "lxml")
-            links = soup.findAll("a")
-            for link in links:
-                href = link.get('href')
-                href = str(href)
-                if href.endswith("." + self.domain_root):
-                    domain = href.split('//')
-                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain[2]}{Style.RESET_ALL}{Fore.WHITE} [DNSDumpster]")
-                    self.results.data[self.source]["subdomains"].add(domain[2])
+            links = soup.findAll("td")
+            for domain in domains:
+                if sys.version_info >= (3, 9):
+                    domain = domain.lower().removeprefix(".") # preventing different case duplicates and removing leading junk from some results
+                if (
+                    domain.endswith("." + self.domain_root)
+                    and domain not in self.results.data[self.source]["subdomains"]
+                ):
+                    self.results.data[self.source]["subdomains"].add(domain)
+                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [DNSDumpster]")
         except (
             requests.exceptions.RequestException, 
             NameError,

@@ -16,13 +16,15 @@ class RapidDNS:
         self.output_file = output_file
         self.proxy = proxy
         self.source = "RapidDNS"
+        self.timeout = 90
         self.results = Results(self.source)
 
     def run(self):
         logging.warning(f"[*] starting RapidDNS search...")
         url = f"https://rapiddns.io/subdomain/{self.domain_root}?full=1"
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
         proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
-        hh = HTTPHandler(proxies=proxies)
+        hh = HTTPHandler(headers=headers, proxies=proxies, timeout=self.timeout)
         eh = ErrorHandler()
         
         try:

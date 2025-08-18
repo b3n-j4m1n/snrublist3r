@@ -40,7 +40,7 @@ class CommonCrawl:
             for index in indexes:
                 url = f"https://index.commoncrawl.org/{index}-index?url=*.{self.domain_root}"
                 response = hh.get(url)
-                domains = re.findall(r'(?:%252F|//|@)((?:[\w-]+[.])+[\w-]+)', response.text)
+                domains = re.findall(r'(?:%252F|//|@)((?:[\w-]+[.])+[\w-]+)', response.text, flags=re.IGNORECASE)
                 for domain in domains:
                     if (
                         domain.endswith("." + self.domain_root)

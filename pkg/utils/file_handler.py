@@ -20,16 +20,16 @@ class FileHandler:
                         root_domains.append(cleaned_line)
         return root_domains
     
-    def set_nameservers(self, nameserver_file, brute_force, mutation):
-        nameservers = []
-        if (brute_force is True or mutation is True) and nameserver_file is None:
-            logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] WARNING, -nf/--nameservers-file not set, using system settings (potential DoS)")
-        elif  (brute_force is True or mutation is True) and nameserver_file is not None:
-            with open(nameserver_file) as file:
+    def set_resolvers(self, resolvers_file, brute_force, mutation):
+        resolvers = []
+        if (brute_force is True or mutation is True) and resolvers_file is None:
+            logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] WARNING, -rf/--resolvers-file not set, using system settings (potential DoS)")
+        elif  (brute_force is True or mutation is True) and resolvers_file is not None:
+            with open(resolvers_file) as file:
                 lines = file.readlines()
-                nameservers = [line.rstrip() for line in lines]
-                logging.info(f"[*] using nameservers {str(nameservers)}")
-        return nameservers
+                resolvers = [line.rstrip() for line in lines]
+                logging.info(f"[*] using resolvers {str(resolvers)}")
+        return resolvers
     
     def set_permutation_strings(self, permutation_file):
         with open(permutation_file) as file:

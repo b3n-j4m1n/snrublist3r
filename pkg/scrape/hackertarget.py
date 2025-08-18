@@ -36,7 +36,7 @@ class HackerTarget:
                 return self.results.data
             line = response.text.split('\n')
             for l in line:
-                    domain = l.split(',')[0]
+                    domain = l.split(',')[0].lstrip("*.")  # removing leading junk from some results
                     if (
                         domain.endswith("." + self.domain_root)
                         and domain not in self.results.data[self.source]["subdomains"]

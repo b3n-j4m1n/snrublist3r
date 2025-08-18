@@ -21,15 +21,15 @@ class Gist:
         self.source = "Gist"
         self.results = Results(self.source)
         self.gist_links = set()
-
-
-    def run(self):
-        logging.warning("[*] starting Gist query...")
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
-        url = "https://gist.github.com/search"
-        params = {"q": f'"{self.domain_root}"', "ref": "searchresults"}
         proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
-        hh = HTTPHandler(headers=headers, proxies=proxies, params=params)
+        self.hh = HTTPHandler(headers=headers, proxies=proxies)
+
+
+    def get_gist_links(self):
+        params = {"q": f'"{self.domain_root}"', "ref": "searchresults"}
+        self.hh.params = params
+        url = "https://gist.github.com/search"
         eh = ErrorHandler()
         delay = 5
         i = 1
@@ -37,16 +37,22 @@ class Gist:
         while i <= 100:
             params["p"] = str(i)
             try:
-                response = hh.get(url)
+                response = self.hh.get(url)
                 response.raise_for_status()
                 soup = BeautifulSoup(response.text, "lxml")      
                 if "We couldn’t find any gists matching" in soup.text:
                     break
                 else:
-                    gists = soup.findAll(attrs={"class": "link-overlay"})
-                    for gist in gists:
-                        href = gist.get('href')
-                        self.gist_links.add(href)
+                    # getting gist links is a nightmare
+                    muted_links = soup.find_all('a', class_="Link--muted", href=True)
+                    for anchor in muted_links:
+                        href = anchor.get('href')
+                        if (href and href.startswith('/') and 
+                            not href.endswith('/forks') and 
+                            not href.endswith('#comments') and 
+                            not href.endswith('/stargazers')):
+                            gist_file_link = "https://gist.github.com" + href
+                            self.gist_links.add(gist_file_link)
                 time.sleep(delay)
                 i += 1
             except requests.exceptions.HTTPError as e:
@@ -67,12 +73,16 @@ class Gist:
                 KeyboardInterrupt
                 ) as e:
                 eh.handle_error(e)
-                
 
+    def run(self):
+        logging.warning("[*] starting Gist query...")
+        self.get_gist_links()
+
+        eh = ErrorHandler()
+        self.hh.params = None
         for link in self.gist_links:
-            url = link
             try:
-                response = hh.get(url)
+                response = self.hh.get(link)
                 domains = re.findall(r"(?:[\w-]+[.])+[\w-]+", response.text)
                 for domain in domains:
                     if sys.version_info >= (3, 9):
