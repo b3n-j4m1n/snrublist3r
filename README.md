@@ -128,7 +128,7 @@ python snrublist3r.py -d example.com -v -b -m --disable-scraping
 
 #### Linux
 ```
-git clone https://github.com/b3n-j4m1n/snrublist3r-private.git
+git clone https://github.com/b3n-j4m1n/snrublist3r.git
 cd snrublist3r
 python -m venv snrublist3r
 source ./snrublist3r/bin/activate
@@ -137,7 +137,7 @@ pip install -r requirements.txt
 
 #### Windows
 ```
-git clone https://github.com/b3n-j4m1n/snrublist3r-private.git
+git clone https://github.com/b3n-j4m1n/snrublist3r.git
 cd snrublist3r
 python -m venv snrublist3r
 .\snrublist3r\Scripts\Activate.ps1
