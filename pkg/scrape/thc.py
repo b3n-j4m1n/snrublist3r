@@ -38,6 +38,8 @@ class THC:
                 data = response.json()
                 for record in data.get("domains", []):
                     domain = record.get("domain", "")
+                    if domain.startswith("*"):
+                        domain = domain[2:] # remove the "*."
                     if domain.endswith("." + self.domain_root) and domain not in self.results.data[self.source]["subdomains"]:
                         self.results.data[self.source]["subdomains"].add(domain)
                         logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [THC]")
