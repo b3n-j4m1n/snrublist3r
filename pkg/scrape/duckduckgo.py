@@ -49,13 +49,13 @@ class DuckDuckGo:
         return deep_preload_link
     
     def run(self):
-        logging.info("[*] starting DuckDuckGo query...")
+        logging.warning("[*] starting DuckDuckGo query...")
         deep_preload_link = self.get_deep_preload_link() # the "more results" link
         if deep_preload_link == "RATE_LIMITED_202":
-            logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [DuckDuckGo] 202 rate-limiting detected")
+            logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [DuckDuckGo] 202 rate-limiting detected")
             return self.results.data
         elif deep_preload_link is None:
-            logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [DuckDuckGo] error getting deep_preload_link")
+            logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [DuckDuckGo] error getting deep_preload_link")
             return self.results.data
         base_url = "https://links.duckduckgo.com"
         params = deep_preload_link.replace("https://links.duckduckgo.com", "")
@@ -82,7 +82,7 @@ class DuckDuckGo:
                 response = hh.get(url=url)
                 response.raise_for_status()
                 if response.status_code == 202:
-                    logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [DuckDuckGo] 202 rate-limiting detected")
+                    logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [DuckDuckGo] 202 rate-limiting detected")
                     return self.results.data
                 domains = re.findall(r'(?:%252F|//|@)((?:[\w-]+[.])+[\w-]+)', response.text, flags=re.IGNORECASE)
                 for domain in domains:
@@ -91,7 +91,7 @@ class DuckDuckGo:
                         and domain not in self.results.data[self.source]["subdomains"]
                     ):
                         self.results.data[self.source]["subdomains"].add(domain)
-                        logging.warning(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [DuckDuckGo]")
+                        logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [DuckDuckGo]")
                 more_results = re.search(r'{"n":"(/d\.js\?[^"]+)"', response.text)
                 if not more_results:
                     break

@@ -21,7 +21,7 @@ class SANSearch:
 
 
     def run(self, port=443):
-        if self.verbosity_level > 0:
+        if self.verbosity_level >= 3:
             self.progress_bar = tqdm(desc="progress", total=len(self.found_subdomains), unit=" requests", maxinterval=0.1, mininterval=0, miniters=1, smoothing=0, colour='WHITE')
             self.timeout_bar = tqdm(desc="error", total=len(self.found_subdomains), unit=" errors", maxinterval=1, mininterval=1, colour='RED')
         else:
@@ -43,7 +43,7 @@ class SANSearch:
                                 and domain not in self.results.data[self.sources_name]['subdomains']
                             ):
                                 self.results.data[self.sources_name]['subdomains'].add(domain)
-                                if self.verbosity_level > 0:
+                                if self.verbosity_level >= 3:
                                     tqdm.write('\033[92m' + "[+] " + domain + '\033[1m')
                 self.progress_bar.update()
             except Exception as e:

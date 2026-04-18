@@ -21,7 +21,7 @@ class WaybackMachine:
 
 
     def run(self):
-        logging.info(f"[*] starting Wayback Machine search...")
+        logging.warning(f"[*] starting Wayback Machine search...")
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
         url = "http://web.archive.org/cdx/search/cdx"
         params = {
@@ -48,10 +48,10 @@ class WaybackMachine:
                     self.results.data[self.source]["subdomains"].add(domain)
                     logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Wayback Machine]")
         except requests.exceptions.Timeout as e:
-            logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Wayback Machine] timed out - service may be slow or unavailable{Style.RESET_ALL}")
+            logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Wayback Machine] timed out - service may be slow or unavailable{Style.RESET_ALL}")
             eh.handle_error(e, self.source)
         except requests.exceptions.ConnectionError as e:
-            logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Wayback Machine] connection failed - service may be unavailable{Style.RESET_ALL}")
+            logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Wayback Machine] connection failed - service may be unavailable{Style.RESET_ALL}")
             eh.handle_error(e, self.source)
         except (
             requests.exceptions.RequestException, 

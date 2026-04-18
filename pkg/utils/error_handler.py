@@ -4,9 +4,7 @@ import json.decoder
 import socket
 import sys
 import ssl
-import traceback
-
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
 class ErrorHandler:
     ERROR_MESSAGES = {
@@ -32,5 +30,3 @@ class ErrorHandler:
             logging.debug(f"{Fore.LIGHTRED_EX}[ERROR] {message}")
             sys.exit()
         logging.debug(f"{Fore.LIGHTRED_EX}[ERROR] {source}{Style.RESET_ALL} {message}: {error}")
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-            traceback.print_exc()

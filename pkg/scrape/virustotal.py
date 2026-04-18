@@ -30,7 +30,7 @@ class VirusTotal:
         return res.decode()
 
     def run(self):
-        logging.info(f"[*] starting Virus Total search...")
+        logging.warning(f"[*] starting Virus Total search...")
         # credit - https://github.com/aboul3la/Sublist3r/pull/327 (obsolete now)
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
@@ -64,7 +64,7 @@ class VirusTotal:
                     logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Virus Total]")
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 429:
-                logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [VirusTotal] 429 reCAPTCHA validation failed, please try again")
+                logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [VirusTotal] 429 reCAPTCHA validation failed, please try again")
             return self.results.data
         except (
             requests.exceptions.RequestException, 

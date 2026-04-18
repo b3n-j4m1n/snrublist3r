@@ -27,7 +27,7 @@ class DNSDumpster:
         return authorization_token
     
     def run(self):
-        logging.info("[*] starting DNSDumpster query...")
+        logging.warning("[*] starting DNSDumpster query...")
         authorization_url = f"https://dnsdumpster.com/"
         url = f"https://api.dnsdumpster.com/htmld/"
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
@@ -41,7 +41,7 @@ class DNSDumpster:
                 {"Authorization": authorization_token}
             )
         except:
-            logging.error(Fore.LIGHTRED_EX + "[-] [DNSDumpster] error getting Authorization token")
+            logging.debug(Fore.LIGHTRED_EX + "[-] [DNSDumpster] error getting Authorization token")
             return self.results.data
         
         data = {"target": self.domain_root}

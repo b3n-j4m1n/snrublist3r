@@ -1,21 +1,23 @@
 import logging
 from pkg.scrape import (
-    alienvault,
+    # alienvault,
     anubis,
-    ask,
-    bing,
+    # ask,
+    # bing,
     certificatesearch,
     chaos,
     commoncrawl,
-    digitorus,
+    # digitorus,
     dnsdumpster,
-    duckduckgo,
+    # duckduckgo,
     gist,
-    google,
+    # google,
     hackertarget,
+    hudsonrock,
     rapiddns,
-    subdomaincenter,
-    threatcrowd,
+    # subdomaincenter,
+    thc,
+    # threatcrowd,
     virustotal,
     waybackmachine,
     yahoo,
@@ -38,22 +40,24 @@ class ModuleRunner:
             raise ValueError(f"{Fore.LIGHTRED_EX}[-] cannot have both -s/--sources and --fast arguments")
         if not sources and not fast:
             sources = [
-            "alienvault",
+            # "alienvault",
             "anubis",
-            "ask",
-            "bing",
+            # "ask",
+            # "bing",
             "certificatesearch",
             "chaos",
             "commoncrawl",
-            "digitorus",
+            # "digitorus",
             "dnsdumpster",
-            "duckduckgo",
+            # "duckduckgo",
             "gist",
-            "google",
+            # "google",
             "hackertarget",
+            "hudsonrock",
             "rapiddns",
-            "subdomaincenter",
-            "threatcrowd",
+            # "subdomaincenter",
+            "thc",
+            # "threatcrowd",
             "virustotal",
             "waybackmachine",
             "yahoo"
@@ -62,60 +66,66 @@ class ModuleRunner:
             sources = sources.split(',')
         elif fast and not sources:
             sources = [
-            "alienvault",
+            # "alienvault",
             "anubis",
-            "ask",
-            "bing",
+            # "ask",
+            # "bing",
             "certificatesearch",
             "chaos",
-            "digitorus",
+            # "digitorus",
             "dnsdumpster",
             "hackertarget",
+            "hudsonrock",
             "rapiddns",
-            "subdomaincenter",
-            "threatcrowd",
+            # "subdomaincenter",
+            "thc",
+            # "threatcrowd",
             "virustotal",
             "yahoo"
         ]
         sources_selected = []
         sources_modules = {
-            'alienvault': alienvault.AlienVault(domain, proxy, output_file),
+            # 'alienvault': alienvault.AlienVault(domain, proxy, output_file),
             'anubis': anubis.Anubis(domain, proxy, output_file),
-            'ask': ask.Ask(domain, proxy, output_file),
-            'bing': bing.Bing(domain, proxy, output_file),
+            # 'ask': ask.Ask(domain, proxy, output_file),
+            # 'bing': bing.Bing(domain, proxy, output_file),
             'certificatesearch': certificatesearch.CertificateSearch(domain, proxy, output_file),
             'chaos': chaos.Chaos(domain, proxy, output_file),
             'commoncrawl': commoncrawl.CommonCrawl(domain, proxy, output_file),
-            'digitorus': digitorus.Digitorus(domain, proxy, output_file),
+            # 'digitorus': digitorus.Digitorus(domain, proxy, output_file),
             'dnsdumpster': dnsdumpster.DNSDumpster(domain, proxy, output_file),
-            'duckduckgo': duckduckgo.DuckDuckGo(domain, proxy, output_file),
+            # 'duckduckgo': duckduckgo.DuckDuckGo(domain, proxy, output_file),
             'gist': gist.Gist(domain, proxy, output_file),
-            'google': google.Google(domain, proxy, output_file),
+            # 'google': google.Google(domain, proxy, output_file),
             'hackertarget': hackertarget.HackerTarget(domain, proxy, output_file),
+            'hudsonrock': hudsonrock.HudsonRock(domain, proxy, output_file),
             'rapiddns': rapiddns.RapidDNS(domain, proxy, output_file),
-            'subdomaincenter': subdomaincenter.SubdomainCenter(domain, proxy, output_file),
-            'threatcrowd': threatcrowd.ThreatCrowd(domain, proxy, output_file),
+            # 'subdomaincenter': subdomaincenter.SubdomainCenter(domain, proxy, output_file),
+            'thc': thc.THC(domain, proxy, output_file),
+            # 'threatcrowd': threatcrowd.ThreatCrowd(domain, proxy, output_file),
             'virustotal': virustotal.VirusTotal(domain, proxy, output_file),
             'waybackmachine': waybackmachine.WaybackMachine(domain, proxy, output_file),
             'yahoo': yahoo.Yahoo(domain, proxy, output_file),
         }
         sources_names = {
-            'alienvault': "AlienVault",
+            # 'alienvault': "AlienVault",
             'anubis': "Anubis",
-            'ask': "Ask",
-            'bing': "Bing",
+            # 'ask': "Ask",
+            # 'bing': "Bing",
             'certificatesearch': "Certificate Search",
             'chaos': "Chaos",
             'commoncrawl': "Common Crawl",
-            'digitorus': "Digitorus",
-            'duckduckgo': "DuckDuckGo",
+            # 'digitorus': "Digitorus",
+            # 'duckduckgo': "DuckDuckGo",
             'dnsdumpster': "DNSDumpster",
             'gist': "Gist",
-            'google': "Google",
+            # 'google': "Google",
             'hackertarget': "Hacker Target",
+            'hudsonrock': "Hudson Rock",
             'rapiddns': "RapidDNS",
-            'subdomaincenter': "Subdomain Center",
-            'threatcrowd': "ThreatCrowd",
+            # 'subdomaincenter': "Subdomain Center",
+            'thc': "THC",
+            # 'threatcrowd': "ThreatCrowd",
             'virustotal': "VirusTotal",
             'waybackmachine': "Wayback Machine",
             'yahoo': "Yahoo"
@@ -127,7 +137,7 @@ class ModuleRunner:
         # creating a list of source modules to run
         for source in sources:
             sources_selected.append(sources_names[source])
-        logging.warn(f"[*] starting source scraper for sources {sources_selected}")
+        logging.warning(f"[*] starting source scraper for sources {sources_selected}")
         # running selected source modules and updating the results
         for source in sources:
             results.update(sources_modules[source].run())
@@ -150,9 +160,9 @@ class ModuleRunner:
     def run_altdns(self, domain, found_subdomains, tasks, resolvers, permutations, operating_system, max_alts, autopilot, timeout, dns_retries, verbosity_level, output_file=None):
         max_alts = int(max_alts) // 1425 # permutations is roughly 1,145 x found subdomains
         if len(found_subdomains) > max_alts:
-            logging.error(f"{Fore.LIGHTRED_EX}[-] mutation brute force cancelled, excessive permutations, use --max-alts to override")
+            logging.warning(f"{Fore.LIGHTRED_EX}[-] mutation brute force cancelled, excessive permutations, use --max-alts to override")
             return set()
-        logging.warn(f"[*] mutating known subdomains")
+        logging.warning(f"[*] mutating known subdomains")
         sources_name = "AltDNS"
         adns = AltDNS(found_subdomains, permutations)
         permutations = set().union(
@@ -169,13 +179,13 @@ class ModuleRunner:
             print(Fore.LIGHTYELLOW_EX + "[?] continue with mutation brute force (y/n)? ", end='') # input() doesn't work with colorama
             altdns_length_prompt = input()
             if altdns_length_prompt == ("n"):
-                logging.warn(f"[*] mutation brute force cancelled")
+                logging.warning(f"[*] mutation brute force cancelled")
                 return set()
             elif altdns_length_prompt != ("y"):
-                logging.error(f"{Fore.LIGHTRED_EX}[-] invalid response")
+                logging.debug(f"{Fore.LIGHTRED_EX}[-] invalid response")
                 return set()
             else:
-                logging.warn(f"[*] starting mutation brute force...")
+                logging.warning(f"[*] starting mutation brute force...")
                 pass
         dnsbf = DNSBruteForce(tasks, resolvers, operating_system, sources_name, timeout, dns_retries, verbosity_level, output_file)
         results = dnsbf.run(domain, permutations)

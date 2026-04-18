@@ -58,11 +58,11 @@ class Gist:
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 429:
                     if delay > 30:
-                        logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Gist] giving up due to excessive HTTP 429 responses (try from a different source IP)")
+                        logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Gist] giving up due to excessive HTTP 429 responses (try from a different source IP)")
                         break
                     else:
                         delay += 2
-                        logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Gist] 429 Too Many Requests, increasing delay and retrying...")
+                        logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Gist] 429 Too Many Requests, increasing delay and retrying...")
                 time.sleep(delay)
             except (
                 requests.exceptions.RequestException, 
@@ -72,7 +72,7 @@ class Gist:
                 AttributeError,
                 KeyboardInterrupt
                 ) as e:
-                eh.handle_error(e)
+                eh.handle_error(e, self.source)
 
     def run(self):
         logging.warning("[*] starting Gist query...")
@@ -101,7 +101,7 @@ class Gist:
                 AttributeError,
                 KeyboardInterrupt
                 ) as e:
-                eh.handle_error(e)
+                eh.handle_error(e, self.source)
 
         if self.output_file:
             oh = OutputHandler()

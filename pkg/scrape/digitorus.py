@@ -19,7 +19,7 @@ class Digitorus:
 
 
     def run(self):
-        logging.info("[*] starting Digitorus search...")
+        logging.warning("[*] starting Digitorus search...")
         url = "https://certificatedetails.com/" + f"{self.domain_root}"
         proxies = {"http": self.proxy, "https": self.proxy} if self.proxy else None
         hh = HTTPHandler(proxies=proxies, timeout=120)

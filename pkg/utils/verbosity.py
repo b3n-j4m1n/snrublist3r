@@ -22,6 +22,9 @@ class Verbosity:
             logging.basicConfig(level=log_levels[3], format='%(message)s')
             return 3
         elif debug is not None:
+            logging.getLogger("requests").setLevel(logging.CRITICAL)
+            logging.getLogger('urllib3').setLevel(logging.CRITICAL)
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             logging.basicConfig(level=log_levels[4], format='%(message)s')
             return 4
         elif silent is not None:

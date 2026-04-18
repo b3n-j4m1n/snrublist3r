@@ -19,7 +19,7 @@ class CertificateSearch:
 
 
     def run(self):
-        logging.info("[*] starting certificate transparency search...")
+        logging.warning("[*] starting certificate transparency search...")
         url = "https://crt.sh"
         params = {
             "q": f"{self.domain_root}",

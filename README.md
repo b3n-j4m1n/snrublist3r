@@ -19,7 +19,7 @@
 </h1>
 
 ## Key Features
-- 19 sources, all keyless (no subscriptions required)
+- 13 sources, all keyless (no subscriptions required)
 - Asyncronous brute force with lots of pep, 2,000+ requests/s (depending on resolvers and network performance)
 - Mutation brute forcing, i.e. permutations of discovered domains then used in a brute force
 - TLS certificate Subject Alternative Name (SAN) enumeration
@@ -27,7 +27,7 @@
 
 
 #### Sources
-[AlienVault](https://otx.alienvault.com/), [Anubis](https://github.com/jonluca/Anubis), [Ask](https://www.ask.com/), [Bing](https://www.bing.com/), [Certificate Search](https://crt.sh/), [Chaos](https://chaos.projectdiscovery.io/), [Common Crawl](https://commoncrawl.org/), [Digitorus](https://www.digitorus.com/), [DNSDumpster](https://dnsdumpster.com/), [DuckDuckGo](https://duckduckgo.com/), [Gist](https://gist.github.com/), [Google](https://www.google.com), [Hacker Target](https://hackertarget.com/), [RapidDNS](https://rapiddns.io/), [ARPSyndicate](https://www.subdomain.center/), [ThreatCrowd](http://ci-www.threatcrowd.org/), [VirusTotal](https://www.virustotal.com/), [WayBack Machine](https://archive.org/web/), [Yahoo](https://yahoo.com/)
+~~[AlienVault](https://otx.alienvault.com/)~~, [Anubis](https://github.com/jonluca/Anubis), ~~[Ask](https://www.ask.com/)~~, ~~[Bing](https://www.bing.com/)~~, [Certificate Search](https://crt.sh/), [Chaos](https://chaos.projectdiscovery.io/), [Common Crawl](https://commoncrawl.org/), ~~[Digitorus](https://www.digitorus.com/)~~, [DNSDumpster](https://dnsdumpster.com/), ~~[DuckDuckGo](https://duckduckgo.com/)~~, [Gist](https://gist.github.com/), ~~[Google](https://www.google.com)~~, [Hacker Target](https://hackertarget.com/), [Hudson Rock](https://www.hudsonrock.com/), [RapidDNS](https://rapiddns.io/), ~~[ARPSyndicate](https://www.subdomain.center/)~~, ~~[ThreatCrowd](http://ci-www.threatcrowd.org/)~~, [THC](https://ip.thc.org/), [VirusTotal](https://www.virustotal.com/), [WayBack Machine](https://archive.org/web/), [Yahoo](https://yahoo.com/)
 
 ## How To Use
 ```
@@ -51,14 +51,13 @@ TARGET(S):
 
 SCRAPING:
   -s SOURCES, --sources SOURCES
-                        comma-separated list of sources, options are alienvault,
-                        anubis, ask, bing, certificatesearch, chaos,
-                        commoncrawl, digitorus, dnsdumpster, duckduckgo, gist,
-                        google, hackertarget, rapiddns, subdomaincenter,
-                        threatcrowd, virustotal, waybackmachine,
+                        comma-separated list of sources, options are
+                        anubis, certificatesearch, chaos, commoncrawl,
+                        dnsdumpster, gist, hackertarget, hudsonrock,
+                        rapiddns, thc, virustotal, waybackmachine,
                         yahoo (default is all)
   --fast                run only fast scraping modules (excludes Common Crawl,
-                        DuckDuckGo, Gist)
+                        Gist, WaybackMachine)
   --proxy PROXY         proxy used for source scraper, e.g.
                         'http://127.0.0.1:8080'
   --disable-scraping    disable scraping of any sources (use with brute force
@@ -74,7 +73,7 @@ BRUTE FORCE:
                         DNS brute force
   --tasks TASKS         number of concurrent tasks in the brute-force queue
                         (default is 256)
-  --timeout TIMEOUT     timeout on DNS resolution (default is 45)
+  --timeout TIMEOUT     timeout on DNS resolution (default is 30)
   --dns-retries DNS_RETRIES
                         retries for DNS resolution (default is 2)
   -m                    enable mutation brute force

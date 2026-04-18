@@ -31,7 +31,7 @@ class ThreatCrowd:
         try:
             response = hh.get(url)
             if "failedConnection" in response.text:
-                logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [ThreatCrowd] 200 Connection failedConnection failed: Too many connections")
+                logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [ThreatCrowd] 200 Connection failed: Too many connections")
                 return self.results.data
             response.raise_for_status()
             data = response.json()

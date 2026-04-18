@@ -47,18 +47,18 @@ class Google:
         try:
             hh.get(url)
         except (
-            requests.exceptions.RequestException, 
-            NameError, 
+            requests.exceptions.RequestException,
+            NameError,
             ConnectionError,
-            TypeError, 
-            AttributeError, 
+            TypeError,
+            AttributeError,
             KeyboardInterrupt
             ) as e:
             eh.handle_error(e, self.source)
         time.sleep(10)
 
     def run(self):
-        logging.info("[*] starting Google query...")
+        logging.warning("[*] starting Google query...")
         url = "https://www.google.com.au/search"
         params = {
             "q": f"site:{self.domain_root}",
@@ -66,9 +66,9 @@ class Google:
             "num": "100"
         }
         eh = ErrorHandler()
-        
+
         try:
-            
+
             # initial request to get the cookies
             headers = {
                         "User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7", # very old Firefox version from 2009, modern user agents will trigger a JavaScript check and redirect to "enable JavaScript" page
@@ -85,12 +85,12 @@ class Google:
                         "Te": "trailers"
                     }
             params["start"] = "0"
-            
+
             hh = HTTPHandler(headers=headers, params=params, session=self.session)
             response = hh.get(url)
-            
+
             response.raise_for_status()
-            
+
             for i in range(0, 1001, 100):
                 params["start"] = str(i)
                 hh = HTTPHandler(headers=headers, params=params, session=self.session)
@@ -108,13 +108,13 @@ class Google:
                         and domain not in self.results.data[self.source]["subdomains"]
                     ):
                         self.results.data[self.source]["subdomains"].add(domain)
-                        logging.warning(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Google]")
+                        logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Google]")
                 self.normal_query()
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 429:
-                logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Google] 429 Too Many Requests")
+                logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Google] 429 Too Many Requests")
         except (
-            requests.exceptions.RequestException, 
+            requests.exceptions.RequestException,
             NameError,
             ConnectionError,
             TypeError,
@@ -122,10 +122,9 @@ class Google:
             KeyboardInterrupt
             ) as e:
             eh.handle_error(e, self.source)
-            
+
         if self.output_file:
             oh = OutputHandler()
             oh.handle_output(self.output_file, self.results.data)
-        
-        return self.results.data
 
+        return self.results.data

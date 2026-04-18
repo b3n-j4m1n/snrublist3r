@@ -20,7 +20,7 @@ class Yahoo:
 
 
     def run(self):
-        logging.info(f"[*] starting Yahoo search...")
+        logging.warning(f"[*] starting Yahoo search...")
         headers = headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"}
         url = "https://search.yahoo.com/search"
         params = {

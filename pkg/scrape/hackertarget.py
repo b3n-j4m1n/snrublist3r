@@ -32,7 +32,7 @@ class HackerTarget:
         try:
             response = hh.get(url)
             if "API count exceeded" in response.text:
-                logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Hacker Targer] 200 API count exceeded")
+                logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Hacker Target] 200 API count exceeded")
                 return self.results.data
             line = response.text.split('\n')
             for l in line:
@@ -45,7 +45,7 @@ class HackerTarget:
                         logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [HackerTarget]")
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 429:
-                logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Hacker Target] 429 Too Many Requests")
+                logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Hacker Target] 429 Too Many Requests")
         except (
             requests.exceptions.RequestException, 
             NameError,

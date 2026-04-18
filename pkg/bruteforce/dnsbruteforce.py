@@ -50,14 +50,14 @@ class DNSBruteForce:
                 domain = await queue.get()
                 try:
                     await self.resolver.query(domain, "A")
-                    if self.verbosity_level > 0:
+                    if self.verbosity_level >= 3:
                         tqdm.write('\033[92m' + "[+] " + domain + '\033[1m')
                     self.results.data[self.sources_name]["subdomains"].add(domain)
                 except aiodns.error.DNSError as error:
                     if error.args[0] != 1 and error.args[0] != 4:
                         self.timeout_bar.update()
                 finally:
-                    if self.verbosity_level > 0:
+                    if self.verbosity_level >= 3:
                         self.progress_bar.update()
                     queue.task_done()
         except KeyboardInterrupt as error:
@@ -68,12 +68,12 @@ class DNSBruteForce:
         random_sub = ''.join(random.choice(letters) for _ in range(10))
         try:
             socket.gethostbyname(random_sub + "." + domain)
-            logging.error(f"{Fore.LIGHTRED_EX}[-] wildcard subdomain detected, skipping brute force")
+            logging.warning(f"{Fore.LIGHTRED_EX}[-] wildcard subdomain detected, skipping brute force")
             return self.results.data
         except:
             pass
 
-        if self.verbosity_level > 0:
+        if self.verbosity_level >= 3:
             self.progress_bar = tqdm(desc="progress", total=len(subdomains), unit=" requests", maxinterval=0.1, mininterval=0, miniters=1, smoothing=0, colour='WHITE')
             self.timeout_bar = tqdm(desc="error", total=len(subdomains), unit=" errors", maxinterval=1, mininterval=1, colour='RED')
         else:
