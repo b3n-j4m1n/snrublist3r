@@ -39,7 +39,9 @@ class HudsonRock:
             urls = data.get("data", {}).get("employees_urls", []) + data.get("data", {}).get("clients_urls", [])
             for entry in urls:
                 hostname = urlparse(entry["url"]).hostname
-                if hostname and hostname.endswith("." + self.domain_root) and hostname not in self.results.data[self.source]["subdomains"]:
+                if not hostname or '*' in hostname: # removing censored domains
+                    continue
+                if hostname.endswith("." + self.domain_root) and hostname not in self.results.data[self.source]["subdomains"]:
                     self.results.data[self.source]["subdomains"].add(hostname)
                     logging.info(f"{Fore.LIGHTGREEN_EX}[+] {hostname}{Style.RESET_ALL}{Fore.WHITE} [Hudson Rock]")
         except (
