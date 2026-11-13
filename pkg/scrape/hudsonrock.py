@@ -5,6 +5,7 @@ import requests
 from urllib.parse import urlparse
 
 from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.filter_handler import is_filtered
 from pkg.utils.http_handler import HTTPHandler
 from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results import Results
@@ -13,10 +14,11 @@ from colorama import Fore, Style
 
 
 class HudsonRock:
-    def __init__(self, domain_root, proxy, output_file):
+    def __init__(self, domain_root, proxy, output_file, filter_strings=None):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
+        self.filter_strings = filter_strings
         self.source = "Hudson Rock"
         self.results = Results(self.source)
 
@@ -41,7 +43,7 @@ class HudsonRock:
                 hostname = urlparse(entry["url"]).hostname
                 if not hostname or '*' in hostname: # removing censored domains
                     continue
-                if hostname.endswith("." + self.domain_root) and hostname not in self.results.data[self.source]["subdomains"]:
+                if hostname.endswith("." + self.domain_root) and not is_filtered(hostname, self.filter_strings) and hostname not in self.results.data[self.source]["subdomains"]:
                     self.results.data[self.source]["subdomains"].add(hostname)
                     logging.info(f"{Fore.LIGHTGREEN_EX}[+] {hostname}{Style.RESET_ALL}{Fore.WHITE} [Hudson Rock]")
         except (

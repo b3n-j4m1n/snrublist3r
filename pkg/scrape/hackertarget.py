@@ -2,6 +2,7 @@ import logging
 import requests
 
 from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.filter_handler import is_filtered
 from pkg.utils.http_handler import HTTPHandler
 from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results import Results
@@ -10,10 +11,11 @@ from colorama import Fore, Back, Style
 
 
 class HackerTarget:
-    def __init__(self, domain_root, proxy, output_file):
+    def __init__(self, domain_root, proxy, output_file, filter_strings=None):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
+        self.filter_strings = filter_strings
         self.source = "Hacker Target"
         self.results = Results(self.source)
 
@@ -31,21 +33,23 @@ class HackerTarget:
         
         try:
             response = hh.get(url)
+            response.raise_for_status() # makes the 429 handler below reachable
             if "API count exceeded" in response.text:
-                logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Hacker Target] 200 API count exceeded")
+                logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Hacker Target] API count exceeded, free daily quota exhausted")
                 return self.results.data
             line = response.text.split('\n')
             for l in line:
                     domain = l.split(',')[0].lstrip("*.")  # removing leading junk from some results
                     if (
                         domain.endswith("." + self.domain_root)
+                        and not is_filtered(domain, self.filter_strings)
                         and domain not in self.results.data[self.source]["subdomains"]
                     ):
                         self.results.data[self.source]["subdomains"].add(domain)
                         logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [HackerTarget]")
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 429:
-                logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [Hacker Target] 429 Too Many Requests")
+                logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [Hacker Target] 429 Too Many Requests")
         except (
             requests.exceptions.RequestException, 
             NameError,

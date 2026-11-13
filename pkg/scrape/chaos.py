@@ -2,9 +2,9 @@ import logging
 import json
 import requests
 import base64
-import sys
 
 from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.filter_handler import is_filtered
 from pkg.utils.http_handler import HTTPHandler
 from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results import Results
@@ -13,10 +13,11 @@ from colorama import Fore, Style
 
 
 class Chaos:
-    def __init__(self, domain_root, proxy, output_file):
+    def __init__(self, domain_root, proxy, output_file, filter_strings=None):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
+        self.filter_strings = filter_strings
         self.source = "Chaos"
         self.results = Results(self.source)
 
@@ -46,7 +47,8 @@ class Chaos:
                 if not subdomain: # removing empty "" subdomains
                     continue
                 domain = f"{subdomain}.{self.domain_root}"
-                self.results.data[self.source]["subdomains"].add(domain)
+                if not is_filtered(domain, self.filter_strings):
+                    self.results.data[self.source]["subdomains"].add(domain)
             for subdomain in self.results.data[self.source]["subdomains"]:
                 logging.info(f"{Fore.LIGHTGREEN_EX}[+] {subdomain}{Style.RESET_ALL}{Fore.WHITE} [Chaos]")
                     

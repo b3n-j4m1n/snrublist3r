@@ -11,15 +11,20 @@ class ResultsPrinter:
     def print_summary(self):
         results_set = set(subdomain for key in self.results.keys() for subdomain in self.results[key]['subdomains'])
         logging.warning('\n'.join(results_set))
-
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            ip_lines = []
+            for source, data in self.results.items():
+                for subdomain, ips in sorted(data.get("ips", {}).items()):
+                    ip_list = ', '.join(sorted(ips)) if ips else 'no A record'
+                    ip_lines.append(f"[*] {subdomain}: {Fore.LIGHTCYAN_EX}{ip_list}{Style.RESET_ALL}")
+            if ip_lines:
+                logging.debug('\n'.join(ip_lines))
+        logging.warning(f"[*] results per source:")
         for source, data in self.results.items():
             subdomain_count = len(data["subdomains"])
-            if 'DNS Brute Force' not in source and 'AltDNS' not in source:
-                scrape_summary = f"[*] {source}: {Fore.LIGHTGREEN_EX}{subdomain_count}{Style.RESET_ALL}"
-                logging.warning(scrape_summary)
-            if 'DNS Brute Force' in source or 'AltDNS' in source:
-                brute_force_summary = f"[*] {source}: {Fore.LIGHTGREEN_EX}{subdomain_count}{Style.RESET_ALL}"
-                logging.warning(brute_force_summary)
+            truncated_suffix = " (truncated)" if data.get("truncated") else ""
+            elapsed_suffix = f" ({data['elapsed']}s)" if "elapsed" in data else ""
+            logging.warning(f"[*] {source}: {Fore.LIGHTGREEN_EX}{subdomain_count}{Style.RESET_ALL}{truncated_suffix}{elapsed_suffix}")
 
     def print_finished(self):
         unique_subdomains = set()

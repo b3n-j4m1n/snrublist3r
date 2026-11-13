@@ -27,6 +27,6 @@ class ErrorHandler:
     def handle_error(self, error, source):
         message = self.ERROR_MESSAGES.get(type(error), "Unknown Error")
         if isinstance(error, KeyboardInterrupt):
-            logging.debug(f"{Fore.LIGHTRED_EX}[ERROR] {message}")
+            logging.warning(f"{Fore.LIGHTRED_EX}[!] {message}, exiting")
             sys.exit()
         logging.debug(f"{Fore.LIGHTRED_EX}[ERROR] {source}{Style.RESET_ALL} {message}: {error}")

@@ -4,6 +4,7 @@ import requests
 import sys
 
 from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.filter_handler import is_filtered
 from pkg.utils.http_handler import HTTPHandler
 from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results import Results
@@ -13,10 +14,11 @@ from colorama import Fore, Back, Style
 
 
 class Anubis:
-    def __init__(self, domain_root, proxy, output_file):
+    def __init__(self, domain_root, proxy, output_file, filter_strings=None):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
+        self.filter_strings = filter_strings
         self.source = "Anubis"
         self.results = Results(self.source)
 
@@ -36,8 +38,14 @@ class Anubis:
             for domain in anubis_json:
                 if sys.version_info >= (3, 9):
                     domain = domain.lower().removeprefix("x22").removeprefix("2f").removeprefix("u002f") # removing leading junk from some results
-                self.results.data[self.source]["subdomains"].add(domain)
-                logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Anubis]")
+                if (
+                    domain
+                    and domain.endswith("." + self.domain_root)
+                    and not is_filtered(domain, self.filter_strings)
+                    and domain not in self.results.data[self.source]["subdomains"]
+                ):
+                    self.results.data[self.source]["subdomains"].add(domain)
+                    logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Anubis]")
         except (
             requests.exceptions.RequestException, 
             NameError, 

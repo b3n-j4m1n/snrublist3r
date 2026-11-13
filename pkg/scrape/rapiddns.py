@@ -3,6 +3,7 @@ import re
 import requests
 
 from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.filter_handler import is_filtered
 from pkg.utils.http_handler import HTTPHandler
 from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results import Results
@@ -11,10 +12,11 @@ from colorama import Fore, Back, Style
 
 
 class RapidDNS:
-    def __init__(self, domain_root, proxy, output_file):
+    def __init__(self, domain_root, proxy, output_file, filter_strings=None):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
+        self.filter_strings = filter_strings
         self.source = "RapidDNS"
         self.timeout = 90
         self.results = Results(self.source)
@@ -35,6 +37,7 @@ class RapidDNS:
                 domain = domain.lower() # preventing different case duplicates
                 if (
                     domain.endswith("." + self.domain_root)
+                    and not is_filtered(domain, self.filter_strings)
                     and domain not in self.results.data[self.source]["subdomains"]
                 ):
                     self.results.data[self.source]["subdomains"].add(domain)

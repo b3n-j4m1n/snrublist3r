@@ -16,7 +16,7 @@ class FileHandler:
                 lines = file.readlines()
                 for line in lines:
                     cleaned_line = line.rstrip()
-                    if cleaned_line:  # avoid adding empty lines
+                    if cleaned_line: # avoid adding empty lines
                         root_domains.append(cleaned_line)
         return root_domains
     
@@ -28,7 +28,7 @@ class FileHandler:
             with open(resolvers_file) as file:
                 lines = file.readlines()
                 resolvers = [line.rstrip() for line in lines]
-                logging.info(f"[*] using resolvers {str(resolvers)}")
+                logging.info(f"[*] using resolvers {Fore.LIGHTYELLOW_EX}{str(resolvers)}{Style.RESET_ALL}")
         return resolvers
     
     def set_permutation_strings(self, permutation_file):
@@ -38,8 +38,20 @@ class FileHandler:
         return permutation_file
     
     def set_subdomains(self, domain, subdomains_file):
+        subdomains = []
+        seen = set() # O(1) membership tracking, the list append preserves order
         with open(subdomains_file) as file:
-            line = file.readlines()
-            line = [line.rstrip() for line in line]
-        subdomains = [subdomain + '.' + domain for subdomain in line]
-        return subdomains
+            for line in file:
+                subdomain = line.strip().lower()
+                if not subdomain or subdomain.startswith('#'):
+                    continue
+                if subdomain.startswith('*.'):
+                    subdomain = subdomain[2:]
+                if subdomain == '*':
+                    continue
+                if subdomain.endswith('.' + domain):
+                    subdomain = subdomain[:-(len(domain) + 1)]
+                if subdomain and subdomain not in seen:
+                    seen.add(subdomain)
+                    subdomains.append(subdomain)
+        return [subdomain + '.' + domain for subdomain in subdomains]

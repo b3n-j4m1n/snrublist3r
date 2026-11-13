@@ -3,6 +3,7 @@ import requests
 import json
 
 from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.filter_handler import is_filtered
 from pkg.utils.http_handler import HTTPHandler
 from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results import Results
@@ -10,10 +11,11 @@ from pkg.utils.results import Results
 from colorama import Fore, Back, Style
 
 class CertificateSearch:
-    def __init__(self, domain_root, proxy, output_file):
+    def __init__(self, domain_root, proxy, output_file, filter_strings=None):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
+        self.filter_strings = filter_strings
         self.source = "Certificate Search"
         self.results = Results(self.source)
 
@@ -38,10 +40,10 @@ class CertificateSearch:
                 for domain in domains:
                     if domain.startswith("*"):
                         domain = domain[2:] # remove the "*."
-                    if domain.endswith("." + self.domain_root) and "@" not in domain: # filtering out email addresses
+                    if domain.endswith("." + self.domain_root) and "@" not in domain and not is_filtered(domain, self.filter_strings): # filtering out email addresses
                         self.results.data[self.source]["subdomains"].add(domain)
             for subdomain in self.results.data[self.source]["subdomains"]:
-                logging.info(f"{Fore.LIGHTGREEN_EX}[+] {subdomain}{Style.RESET_ALL}{Fore.WHITE} [Certifcate Search]")
+                logging.info(f"{Fore.LIGHTGREEN_EX}[+] {subdomain}{Style.RESET_ALL}{Fore.WHITE} [Certificate Search]")
         except (
             requests.exceptions.RequestException, 
             NameError, 

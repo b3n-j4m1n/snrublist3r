@@ -6,6 +6,7 @@ import random
 import time
 
 from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.filter_handler import is_filtered
 from pkg.utils.http_handler import HTTPHandler
 from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results import Results
@@ -14,10 +15,11 @@ from colorama import Fore, Back, Style
 
 
 class VirusTotal:
-    def __init__(self, domain_root, proxy, output_file):
+    def __init__(self, domain_root, proxy, output_file, filter_strings=None):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
+        self.filter_strings = filter_strings
         self.source = "Virus Total"
         self.results = Results(self.source)
 
@@ -58,13 +60,14 @@ class VirusTotal:
                     domain = domain[2:] # remove the "*."
                 if (
                     domain.endswith("." + self.domain_root)
+                    and not is_filtered(domain, self.filter_strings)
                     and domain not in self.results.data[self.source]["subdomains"]
                 ):
                     self.results.data[self.source]["subdomains"].add(domain)
                     logging.info(f"{Fore.LIGHTGREEN_EX}[+] {domain}{Style.RESET_ALL}{Fore.WHITE} [Virus Total]")
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 429:
-                logging.debug(f"{Fore.LIGHTYELLOW_EX}[!] [VirusTotal] 429 reCAPTCHA validation failed, please try again")
+                logging.warning(f"{Fore.LIGHTYELLOW_EX}[!] [VirusTotal] rate limited (429), try again later or use a proxy")
             return self.results.data
         except (
             requests.exceptions.RequestException, 

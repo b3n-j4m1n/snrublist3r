@@ -5,6 +5,7 @@ import time
 import sys
 
 from pkg.utils.error_handler import ErrorHandler
+from pkg.utils.filter_handler import is_filtered
 from pkg.utils.http_handler import HTTPHandler
 from pkg.utils.output_handler import OutputHandler
 from pkg.utils.results import Results
@@ -14,10 +15,11 @@ from colorama import Fore, Back, Style
 
 
 class Gist:
-    def __init__(self, domain_root, proxy, output_file):
+    def __init__(self, domain_root, proxy, output_file, filter_strings=None):
         self.domain_root = domain_root
         self.output_file = output_file
         self.proxy = proxy
+        self.filter_strings = filter_strings
         self.source = "Gist"
         self.results = Results(self.source)
         self.gist_links = set()
@@ -89,6 +91,7 @@ class Gist:
                         domain = domain.lower().removeprefix("x22").removeprefix("2f") # removing leading junk from some results
                     if (
                         domain.endswith("." + self.domain_root)
+                        and not is_filtered(domain, self.filter_strings)
                         and domain not in self.results.data[self.source]["subdomains"]
                     ):
                         self.results.data[self.source]["subdomains"].add(domain)
