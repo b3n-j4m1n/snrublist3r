@@ -25,7 +25,6 @@
 - Recursive brute forcing
 - Wildcard subdomain evasion
 - TLS certificate Subject Alternative Name (SAN) enumeration
-- Filter out unwanted domains with case-insensitive filter strings (e.g. -fs ".crm.")
 - Linux & Windows supported
 
 
